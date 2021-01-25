@@ -1,0 +1,20 @@
+public class ConsolePrinter {
+
+  private PrintStream printStream;
+
+  public ConsolePrinter(PrintStream printStream) {
+    this.printStream = printStream;
+  }
+
+  public void printText(String text) {
+    printStream.println(text);
+  }
+}
+
+public class DataRecorder {
+
+  public void printUserDetails(User user) {
+    ConsolePrinter ConsolePrinter = new ConsolePrinter(System.out);
+    consolePrinter.printText("Hello " + user.name);
+  }
+}

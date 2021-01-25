@@ -1,0 +1,129 @@
+public class DeedServiceImpl {
+
+    private static final String ID_NOT_FOUND = "Deed not found with given ID";
+
+    private DeedRepository deedRepository;
+    private ApplicationUserRepository applicationUserRepository;
+
+    public DeedServiceImpl(DeedRepository deedRepository, ApplicationUserRepository applicationUserRepository) {
+        this.deedRepository = deedRepository;
+        this.applicationUserRepository = applicationUserRepository;
+    }
+
+    public List<Deed> getAllDeeds() {
+        return deedRepository.findAllByOrderByIdDesc();
+    }
+
+    public Deed getDeedById(int id) {
+        Optional<Deed> deed = deedRepository.findById(id);
+        if (deed.isPresent()) {
+            return deed.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+    }
+
+    public List<Deed> getUpcomingDeeds() throws ParseException {
+        List<Deed> orderedDeeds = deedRepository.findAllByOrderByDateAsc();
+
+        return new ArrayList<>(DeedSorter.currentDateFilter(orderedDeeds).subList(0, 3));
+    }
+
+    public Set<ApplicationUser> getParticipatingUsersOfDeed(int deedID) {
+        Optional<Deed> deed = deedRepository.findById(deedID);
+        if (deed.isPresent()) {
+            return deed.get().getParticipatingUsers();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+    }
+
+    public void addParticipatingUser(int deedID, ApplicationUser applicationUser) {
+        Optional<Deed> deed = deedRepository.findById(deedID);
+        if (deed.isPresent()) {
+            if (deed.get().getParticipatingUsers().contains(applicationUser)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You are already participating in this deed");
+            }
+            if (deed.get().getParticipatingUsers().size() < deed.get().getMaxPeople()) {
+
+                applicationUser.getParticipatingDeeds().add(deed.get());
+                deed.get().getParticipatingUsers().add(applicationUser);
+                deedRepository.save(deed.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deed already has maximum participants");
+            }
+
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+    }
+
+    public void removeParticipatingUser(int deedID, ApplicationUser applicationUser) {
+        Optional<Deed> deed = deedRepository.findById(deedID);
+        if (deed.isPresent()) {
+            if (deed.get().getParticipatingUsers().contains(applicationUser)) {
+                deed.get().getParticipatingUsers().remove(applicationUser);
+                deedRepository.save(deed.get());
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This user is not participating in this deed");
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+    }
+
+    public Deed createDeed(Deed deed, ApplicationUser applicationUser) {
+        deed.setApplicationUser(applicationUser);
+        try {
+            DeedValidator.validateDeed(deed);
+        } catch (InvalidFieldException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+        return deedRepository.save(deed);
+    }
+
+    public void deleteDeed(int id, ApplicationUser applicationUser) {
+
+        Optional<Deed> deed = deedRepository.findById(id);
+        if (deed.isPresent()) {
+            if (applicationUser.getId() != deed.get().getApplicationUser().getId()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+        deedRepository.deleteById(id);
+    }
+
+    public Deed editDeed(int id, Deed newDeed, ApplicationUser applicationUser) {
+
+        Optional<Deed> deedToUpdate = deedRepository.findById(id);
+        if (deedToUpdate.isPresent()) {
+            if (applicationUser.getId() != deedToUpdate.get().getApplicationUser().getId()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            }
+            try {
+                DeedValidator.validateDeed(newDeed);
+                Deed newDeedWithId = new Deed.Builder(id)
+                        .title(newDeed.getTitle())
+                        .city(newDeed.getCity())
+                        .date(newDeed.getDate())
+                        .contactPerson(newDeed.getContactPerson())
+                        .phoneNumber(newDeed.getPhoneNumber())
+                        .email(newDeed.getEmail())
+                        .organization(newDeed.getOrganization())
+                        .maxPeople(newDeed.getMaxPeople())
+                        .currentPeople(newDeed.getCurrentPeople())
+                        .description(newDeed.getDescription())
+                        .tags(newDeed.getTags())
+                        .build();
+                newDeedWithId.setApplicationUser(applicationUser);
+                return deedRepository.save(newDeedWithId);
+            } catch (InvalidFieldException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ID_NOT_FOUND);
+        }
+    }
+}

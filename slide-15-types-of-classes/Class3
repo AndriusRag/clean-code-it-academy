@@ -1,0 +1,18 @@
+public class Class3 {
+
+private static final Logger LOGGER = Logger.of(Class3);
+
+  private UserService userService;
+
+  // initialize
+
+  public DbUser createUser(UserInitiationRequest user) {
+    LOGGER.debug("Received new user creation request: " + user);
+
+    DbUser dbUser = new DbUser();
+    dbUser.setName(user.getName());
+    dbUser.setAge(user.getAge());
+
+    return userService.saveUser(dbUser);
+  }
+}

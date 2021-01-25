@@ -1,0 +1,18 @@
+public class Class2 {
+
+  private UserService userService;
+  private LoanInitiator loanInitiator;
+  private LoanResultsNotifier loanResultsNotifier;
+
+  // initialize
+
+  public void requestNewLoan(int userId, Loan loan) {
+    User user = userService.findUser(userId);
+    if (user != null) {
+      InitialLoanDecision initialDecision = loanInitiator.initiate(user, loan);
+      loanResultsNotifier.notifyUserAboutLoanDecision(user, initialDecision);
+    } else {
+      throw new InvalidUserException("User doesn't exist");
+    }
+  }
+}

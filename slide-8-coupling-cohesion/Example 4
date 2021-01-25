@@ -1,0 +1,33 @@
+public class DataRecorder {
+
+  private Printer printer;
+
+  public DataRecorder(Printer printer) {
+    this.printer = printer;
+  }
+
+  public void printUserDetails(User user) {
+    String textToPrint = "Hello " + user.name;
+    archive.add(textToPrint);
+  }
+}
+
+public class DataArchiver {
+  private List<String> archive;
+
+  public DataArchiver() {
+    this.archive = new ArrayList<>();
+  }
+
+  public void addData(String data) {
+    archive.add(data);
+  }
+
+  public List<String> getArchive() {
+    return archive;
+  }
+
+  public int fetchArchiveSize() {
+    return archive.size;
+  }
+}

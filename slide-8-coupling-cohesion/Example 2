@@ -1,0 +1,29 @@
+public interface Printer {
+  void printText(String text);
+}
+
+public class ConsolePrinter implements Printer {
+
+  private PrintStream printStream;
+
+  public ConsolePrinter(PrintStream printStream) {
+    this.printStream = printStream;
+  }
+
+  public void printText(String text) {
+    printStream.println(text);
+  }
+}
+
+public class DataRecorder {
+
+  private Printer printer;
+
+  public DataRecorder(Printer printer) {
+    this.printer = printer;
+  }
+
+  public void printUserDetails(User user) {
+    printer.printText("Hello " + user.name);
+  }
+}
