@@ -1,0 +1,34 @@
+public class LoanInterestForCustomerTest {
+
+	@Mock
+	private CustomerService customerService;
+	@Mock
+	private LoanInterestService loanInterestService;
+
+	@InjectMocks
+	private LoanInterestForCustomerTypeFinder loanInterestForCustomerTypeFinder;
+
+	@BeforeMethod
+	public void beforeMethod() {
+		MockitoAnnotations.initMocks(this);
+	}
+
+	@Test
+	public void getLoanInterestForCustomer_success() {
+
+		//prepare
+		Long customerId = 1L;
+		Customer customer = new Customer();
+		when(customerService.findCustomerById(customerId)).thenReturn(customer);
+
+		LoanInterest loanInterest = new LoanInterest();
+		loanInterest.setLoanInterest(new BigDecimal(100));
+		when(loanInterestService.findByCustomerTypeId(customer)).thenReturn(loanInterest);
+
+		// execute
+		BigDecimal actualLoanInterest = loanInterestForCustomerTypeFinder.getLoanInterestForCustomer(customerId);
+
+		// verify
+		assertEquals(actualLoanInterest, loanInterest.getLoanInterest());
+	}
+}

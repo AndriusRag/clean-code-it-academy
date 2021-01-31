@@ -1,0 +1,23 @@
+
+
+public class CustomerServiceMock extends CustomerService {
+
+  public Customer findCustomerById(Long customerId) {
+		return null;
+	}
+
+  public void saveCutomer(Customer customer) {}
+}
+
+public class CustomerService {
+
+	private CustomerRepository customerRepository;
+
+	public Customer findCustomerById(Long customerId) {
+		return customerRepository.findOne(customerId);
+	}
+
+  public void saveCustomer(Customer customer) {
+    customerRepository.save(customer);
+  }
+}
